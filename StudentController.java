@@ -119,6 +119,12 @@ public class StudentController {
             // If the student is not found, throw an error
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student not found.");
         }
+        
+        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]+$";
+        
+        if (!studentDTO.email().matches(emailRegex)) {
+        	throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email entered does not have valid format.");
+        }
 
         Student student = studentOptional.get();
 
