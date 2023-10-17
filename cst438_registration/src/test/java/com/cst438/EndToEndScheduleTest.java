@@ -45,11 +45,11 @@ import com.cst438.domain.EnrollmentRepository;
 @SpringBootTest
 public class EndToEndScheduleTest {
 
-	public static final String CHROME_DRIVER_FILE_LOCATION = "C:/chromedriver_win32/chromedriver.exe";
+	public static final String CHROME_DRIVER_FILE_LOCATION = "/Users/juanansaldo/Downloads/chromedriver-mac-arm64/chromedriver";
 
 	public static final String URL = "http://localhost:3000";
 
-	public static final String TEST_USER_EMAIL = "test@csumb.edu";
+	public static final String TEST_USER_EMAIL = "juan@csumb.edu";
 
 	public static final int TEST_COURSE_ID = 40442; 
 
@@ -136,6 +136,198 @@ public class EndToEndScheduleTest {
 		} finally {
 			driver.quit();
 		}
+	}
+	
+	@Test
+	public void addStudent() throws Exception {
+	    System.setProperty("webdriver.chrome.driver", CHROME_DRIVER_FILE_LOCATION);
+	    WebDriver driver = new ChromeDriver();
+	    driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 
+	    try {
+	        driver.get(URL);
+	        Thread.sleep(SLEEP_DURATION);
+
+	        // Locate and click "Admin" button
+	        driver.findElement(By.id("Admin")).click();
+	        Thread.sleep(SLEEP_DURATION);
+
+	        // Locate and click "Add Student" button
+	        driver.findElement(By.id("addStudent")).click();
+
+	        // Enter student name and email, then click the "Add" button
+	        driver.findElement(By.id("studentName")).sendKeys("Juan");
+	        driver.findElement(By.id("studentEmail")).sendKeys(TEST_USER_EMAIL);
+	        driver.findElement(By.id("add")).click();
+	        Thread.sleep(SLEEP_DURATION);
+
+	        // Verify that the new student is in the schedule
+	        WebElement we = driver.findElement(By.xpath("//tr/td[text()='" + TEST_USER_EMAIL + "']"));
+	        assertNotNull(we, "Test student not found in the schedule after successfully adding the student.");
+	        assertEquals(we.getText(), TEST_USER_EMAIL);       
+	        
+	        // Drop the student
+	        we = driver.findElement(By.xpath("//tr[td[text()='" + TEST_USER_EMAIL + "']]//button[@id='Drop']"));
+	        assertNotNull(we);
+	        we.click();
+	        
+	        // the drop student action causes an alert to occur
+	        WebDriverWait wait = new WebDriverWait(driver, 1);
+	        wait.until(ExpectedConditions.alertIsPresent());
+	        Alert simpleAlert = driver.switchTo().alert();
+	        simpleAlert.accept();
+	                 
+	        // check that student is no longer in the schedule
+	        Thread.sleep(SLEEP_DURATION);
+	        assertThrows(NoSuchElementException.class, () -> {
+	        	driver.findElement(By.xpath("//tr/td[text()='" + TEST_USER_EMAIL + "']"));
+	        });
+	    } catch (Exception ex) {
+	        throw ex;
+	    } finally {
+	        driver.quit();
+	    }
+	}
+	
+	@Test
+	public void updateStudent() throws Exception {
+		System.setProperty("webdriver.chrome.driver", CHROME_DRIVER_FILE_LOCATION);
+	    WebDriver driver = new ChromeDriver();
+	    driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+
+	    try {
+	        driver.get(URL);
+	        Thread.sleep(SLEEP_DURATION);
+
+	        // Locate and click "Admin" button
+	        driver.findElement(By.id("Admin")).click();
+	        Thread.sleep(SLEEP_DURATION);
+
+	        // Locate and click "Add Student" button
+	        driver.findElement(By.id("addStudent")).click();
+
+	        // Enter student name and email, then click the "Add" button
+	        driver.findElement(By.id("studentName")).sendKeys("Juan");
+	        driver.findElement(By.id("studentEmail")).sendKeys(TEST_USER_EMAIL);
+	        driver.findElement(By.id("add")).click();
+	        Thread.sleep(SLEEP_DURATION);
+
+	        // Verify that the new student is in the schedule
+	        WebElement we = driver.findElement(By.xpath("//tr/td[text()='" + TEST_USER_EMAIL + "']"));
+	        assertNotNull(we, "Test student not found in the schedule after successfully adding the student.");
+	        assertEquals(we.getText(), TEST_USER_EMAIL);
+	        
+	        // Locate and click "Update" button
+	        driver.findElement(By.xpath("//tr[td[text()='" + TEST_USER_EMAIL + "']]//button[@id='updateStudent']")).click();
+	        Thread.sleep(SLEEP_DURATION);
+
+	        // Enter student status and status code, then click the "Edit" button
+	        driver.findElement(By.id("statusCode")).sendKeys("1");
+	        driver.findElement(By.id("status")).sendKeys("hold");
+	        driver.findElement(By.id("update")).click();
+	        Thread.sleep(SLEEP_DURATION);
+
+	        // Verify that the student status and statusCode has been updated
+	        we = driver.findElement(By.xpath("//tr[td[text()='" + TEST_USER_EMAIL + "']]//td[@id='statCode']"));
+	        assertNotNull(we, "Status code is null");
+	        assertEquals(we.getText(), "1");
+	        
+	        we = driver.findElement(By.xpath("//tr[td[text()='" + TEST_USER_EMAIL + "']]//td[@id='stat']"));
+	        assertNotNull(we, "Status is null");
+	        assertEquals(we.getText(), "hold");
+	        
+	        // Drop the student
+	        we = driver.findElement(By.xpath("//tr[td[text()='" + TEST_USER_EMAIL + "']]//button[@id='Drop']"));
+	        assertNotNull(we);
+	        we.click();
+	        
+	        // the drop student action causes an alert to occur
+	        WebDriverWait wait = new WebDriverWait(driver, 1);
+	        wait.until(ExpectedConditions.alertIsPresent());
+	        Alert simpleAlert = driver.switchTo().alert();
+	        simpleAlert.accept();
+	                 
+	        // check that student is no longer in the schedule
+	        Thread.sleep(SLEEP_DURATION);
+	        assertThrows(NoSuchElementException.class, () -> {
+	        	driver.findElement(By.xpath("//tr/td[text()='" + TEST_USER_EMAIL + "']"));
+	        });
+		} catch (Exception ex) {
+			throw ex;
+		} finally {
+			driver.quit();
+		}
+	}
+	
+	@Test
+	public void deleteStudent() throws Exception {
+		System.setProperty("webdriver.chrome.driver", CHROME_DRIVER_FILE_LOCATION);
+	    WebDriver driver = new ChromeDriver();
+	    driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+
+	    try {
+	        driver.get(URL);
+	        Thread.sleep(SLEEP_DURATION);
+
+	        // Locate and click "Admin" button
+	        driver.findElement(By.id("Admin")).click();
+	        Thread.sleep(SLEEP_DURATION);
+
+	        // Locate and click "Add Student" button
+	        driver.findElement(By.id("addStudent")).click();
+
+	        // Enter student name and email, then click the "Add" button
+	        driver.findElement(By.id("studentName")).sendKeys("Juan");
+	        driver.findElement(By.id("studentEmail")).sendKeys(TEST_USER_EMAIL);
+	        driver.findElement(By.id("add")).click();
+	        Thread.sleep(SLEEP_DURATION);
+
+	        // Verify that the new student is in the schedule
+	        WebElement we = driver.findElement(By.xpath("//tr/td[text()='" + TEST_USER_EMAIL + "']"));
+	        assertNotNull(we, "Test student not found in the schedule after successfully adding the student.");
+	        assertEquals(we.getText(), TEST_USER_EMAIL);       
+	        
+	        // Drop the student
+	        we = driver.findElement(By.xpath("//tr[td[text()='" + TEST_USER_EMAIL + "']]//button[@id='Drop']"));
+	        assertNotNull(we);
+	        we.click();
+	        
+	        // the drop student action causes an alert to occur
+	        WebDriverWait wait = new WebDriverWait(driver, 1);
+	        wait.until(ExpectedConditions.alertIsPresent());
+	        Alert firstAlert = driver.switchTo().alert();
+	        firstAlert.accept();
+	                 
+	        // check that student is no longer in the schedule
+	        Thread.sleep(SLEEP_DURATION);
+	        assertThrows(NoSuchElementException.class, () -> {
+	        	driver.findElement(By.xpath("//tr[td[text()='" + TEST_USER_EMAIL + "']]"));
+	        });
+	        
+	        // Drop student with enrollment
+	        we = driver.findElement(By.xpath("//tr[td[text()='trebold@csumb.edu']]//button[@id='Drop']"));
+	        assertNotNull(we);
+	        we.click();
+	        
+	        // the drop student action causes an alert to occur
+	        wait = new WebDriverWait(driver, 1);
+	        wait.until(ExpectedConditions.alertIsPresent());
+	        firstAlert = driver.switchTo().alert();
+	        firstAlert.accept();
+	        
+	        wait.until(ExpectedConditions.alertIsPresent());
+	        Alert secondAlert = driver.switchTo().alert();
+	        secondAlert.accept();
+	                 
+	        // check that student is no longer in the schedule
+	        Thread.sleep(SLEEP_DURATION);
+	        assertThrows(NoSuchElementException.class, () -> {
+	        	driver.findElement(By.xpath("//tr[td[text()='trebold@csumb.edu']'"));
+	        });
+		} catch (Exception ex) {
+			throw ex;
+		} finally {
+			driver.quit();
+		}
 	}
 }
