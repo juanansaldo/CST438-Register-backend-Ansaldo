@@ -45,7 +45,7 @@ import com.cst438.domain.EnrollmentRepository;
 @SpringBootTest
 public class EndToEndScheduleTest {
 
-	public static final String CHROME_DRIVER_FILE_LOCATION = "C:/chromedriver_win32/chromedriver.exe";
+	public static final String CHROME_DRIVER_FILE_LOCATION = "/Users/juanansaldo/Downloads/chromedriver-mac-arm64/chromedriver";
 
 	public static final String URL = "http://localhost:3000";
 
@@ -61,7 +61,6 @@ public class EndToEndScheduleTest {
 	/*
 	 * add course TEST_COURSE_ID to schedule for 2021 Fall semester.
 	 */
-	
 	@Test
 	public void addCourseTest() throws Exception {
 
@@ -136,6 +135,5 @@ public class EndToEndScheduleTest {
 		} finally {
 			driver.quit();
 		}
-
 	}
 }
