@@ -1,3 +1,10 @@
+CREATE TABLE user_table (
+	email varchar(25) unique,
+	password varchar(100) DEFAULT NULL, 
+	role varchar(25) DEFAULT NULL,
+    PRIMARY KEY (email)
+);
+
 CREATE TABLE course (
   year int  NOT NULL,
   semester varchar(10) NOT NULL,
@@ -33,4 +40,3 @@ CREATE TABLE enrollment (
   FOREIGN KEY (course_id) REFERENCES course (course_id) on delete cascade, 
   FOREIGN KEY (student_id) REFERENCES student (student_id) on delete cascade 
 );
-
