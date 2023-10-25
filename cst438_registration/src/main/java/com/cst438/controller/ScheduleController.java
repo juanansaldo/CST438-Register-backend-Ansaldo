@@ -21,7 +21,11 @@ import com.cst438.domain.EnrollmentRepository;
 import com.cst438.domain.ScheduleDTO;
 import com.cst438.domain.Student;
 import com.cst438.domain.StudentRepository;
+import com.cst438.domain.User;
+import com.cst438.domain.UserRepository;
 import com.cst438.service.GradebookService;
+import java.security.Principal;
+
 @RestController
 @CrossOrigin 
 public class ScheduleController {
@@ -37,18 +41,22 @@ public class ScheduleController {
 	
 	@Autowired
 	GradebookService gradebookService;
+	
+	@Autowired
+	UserRepository userRepository;
+	
 	/*
 	 * get current schedule for student.
 	 */
 	@GetMapping("/schedule")
-	public ScheduleDTO[] getSchedule( @RequestParam("year") int year, @RequestParam("semester") String semester ) {
-		System.out.println("/schedule called.");
-		String student_email = "test@csumb.edu";   // student's email 
+	public ScheduleDTO[] getSchedule(Principal principal, @RequestParam("year") int year, @RequestParam("semester") String semester) {
 		
-		Student student = studentRepository.findByEmail(student_email);
+		System.out.println("/schedule called.");
+		
+		Student student = studentRepository.findByEmail(principal.getName());
 		if (student != null) {
 			System.out.println("/schedule student "+student.getName()+" "+student.getStudent_id());
-			List<Enrollment> enrollments = enrollmentRepository.findStudentSchedule(student_email, year, semester);
+			List<Enrollment> enrollments = enrollmentRepository.findStudentSchedule(principal.getName(), year, semester);
 			ScheduleDTO[] sched = createSchedule(year, semester, student, enrollments);
 			return sched;
 		} else {
@@ -60,10 +68,18 @@ public class ScheduleController {
 	 */
 	@PostMapping("/schedule/course/{id}")
 	@Transactional
-	public ScheduleDTO addCourse( @PathVariable int id  ) { 
-		String student_email = "test@csumb.edu";   // student's email 
-		Student student = studentRepository.findByEmail(student_email);
+	public ScheduleDTO addCourse(Principal principal, @PathVariable int id) {
+		
+		String email = principal.getName();
+    	User user = userRepository.findByEmail(email);
+    	
+    	if (!user.getRole().equals("STUDENT")) {
+    		throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not a student.");
+    	}
+		
+		Student student = studentRepository.findByEmail(principal.getName());
 		Course course  = courseRepository.findById(id).orElse(null);
+		
 		// student.status
 		// = 0  ok to register.  != 0 registration is on hold.		
 		if (student!= null && course!=null && student.getStatusCode()==0) {
@@ -75,7 +91,7 @@ public class ScheduleController {
 			enrollment.setSemester(course.getSemester());
 			enrollmentRepository.save(enrollment);
 			// notify grade book of new enrollment event
-			gradebookService.enrollStudent(student_email, student.getName(), course.getCourse_id());
+			gradebookService.enrollStudent(principal.getName(), student.getName(), course.getCourse_id());
 			ScheduleDTO result = createSchedule(enrollment);
 			return result;
 		} else {
@@ -87,12 +103,19 @@ public class ScheduleController {
 	 */
 	@DeleteMapping("/schedule/{enrollment_id}")
 	@Transactional
-	public void dropCourse(  @PathVariable int enrollment_id  ) {
-		String student_email = "test@csumb.edu";   // student's email 
+	public void dropCourse(Principal principal, @PathVariable int enrollment_id) {
+		
+		String email = principal.getName();
+		User user = userRepository.findByEmail(email);
+    	
+    	if (!user.getRole().equals("STUDENT")) {
+    		throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not a student.");
+    	}
+		
 		// TODO  check that today's date is not past deadline to drop course.
 		Enrollment enrollment = enrollmentRepository.findById(enrollment_id).orElse(null);
 		// verify that student is enrolled in the course.
-		if (enrollment!=null && enrollment.getStudent().getEmail().equals(student_email)) {
+		if (enrollment!=null && enrollment.getStudent().getEmail().equals(principal.getName())) {
 			// OK.  drop the course.
 			 enrollmentRepository.delete(enrollment);
 		} else {
